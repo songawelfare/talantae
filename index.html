@@ -6,6 +6,8 @@
     <title>CreatorsHub | Sell Your Content</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- SoundCloud Widget API -->
+    <script src="https://w.soundcloud.com/player/api.js" defer></script>
     <style>
         :root {
             --black: #121212;
@@ -101,23 +103,6 @@
             width: 24px;
         }
         
-        .playlist-section {
-            padding: 15px;
-            margin-top: 20px;
-        }
-        
-        .playlist-item {
-            display: block;
-            padding: 8px 0;
-            color: var(--light-gray);
-            text-decoration: none;
-            transition: color 0.2s;
-        }
-        
-        .playlist-item:hover {
-            color: var(--white);
-        }
-        
         /* Main Content */
         .main-content {
             grid-column: 2;
@@ -132,24 +117,6 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 30px;
-        }
-        
-        .nav-buttons {
-            display: flex;
-            gap: 15px;
-        }
-        
-        .nav-btn {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background-color: rgba(0, 0, 0, 0.6);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            border: none;
-            color: var(--white);
         }
         
         .user-section {
@@ -205,16 +172,6 @@
         .section-title {
             font-size: 1.5rem;
             font-weight: 700;
-        }
-        
-        .see-all {
-            color: var(--light-gray);
-            font-size: 0.9rem;
-            text-decoration: none;
-        }
-        
-        .see-all:hover {
-            text-decoration: underline;
         }
         
         .content-grid {
@@ -314,6 +271,20 @@
             background-color: var(--accent-blue);
             color: white;
             transform: scale(1.05);
+        }
+        
+        /* SoundCloud Player */
+        .soundcloud-player {
+            width: 100%;
+            height: 166px;
+            background-color: #f2f2f2;
+            border-radius: 8px;
+            margin-top: 10px;
+            display: none;
+        }
+        
+        .player-active .soundcloud-player {
+            display: block;
         }
         
         /* Cart Panel */
@@ -441,8 +412,8 @@
             background-color: var(--accent-hover);
         }
         
-        /* Player */
-        .player {
+        /* Audio Player Bar */
+        .player-bar {
             grid-column: 1 / 3;
             background-color: var(--player-bg);
             border-top: 1px solid rgba(255, 255, 255, 0.1);
@@ -475,11 +446,12 @@
         .now-playing-details .title {
             font-weight: 600;
             margin-bottom: 5px;
+            font-size: 0.9rem;
         }
         
         .now-playing-details .artist {
             color: var(--light-gray);
-            font-size: 0.9rem;
+            font-size: 0.8rem;
         }
         
         .player-controls {
@@ -508,20 +480,34 @@
             width: 40px;
             height: 40px;
             border-radius: 50%;
-            background-color: white;
-            color: black;
+            background-color: var(--accent-blue);
+            color: white;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 1.2rem;
         }
         
-        .progress-bar {
+        .progress-container {
             width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .progress-time {
+            font-size: 0.8rem;
+            color: var(--light-gray);
+            min-width: 40px;
+        }
+        
+        .progress-bar {
+            flex: 1;
             height: 4px;
             background-color: rgba(255, 255, 255, 0.1);
             border-radius: 2px;
             overflow: hidden;
+            cursor: pointer;
         }
         
         .progress {
@@ -530,15 +516,50 @@
             width: 30%;
         }
         
-        .player-extra {
-            width: 30%;
-            display: flex;
-            justify-content: flex-end;
-            gap: 15px;
+        /* Creator tags */
+        .creator-type {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            margin-right: 5px;
+            margin-top: 5px;
         }
         
-        .volume-slider {
-            width: 100px;
+        .musician {
+            background-color: rgba(93, 125, 190, 0.2);
+            color: var(--accent-blue);
+        }
+        
+        .artist {
+            background-color: rgba(255, 100, 100, 0.2);
+            color: #ff6464;
+        }
+        
+        .poet {
+            background-color: rgba(100, 255, 150, 0.2);
+            color: #64ff96;
+        }
+        
+        .vocalist {
+            background-color: rgba(255, 200, 100, 0.2);
+            color: #ffc864;
+        }
+        
+        /* Overlay for cart */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 999;
+            display: none;
+        }
+        
+        .overlay.active {
+            display: block;
         }
         
         /* Mobile Responsiveness */
@@ -551,7 +572,7 @@
                 padding: 20px 5px;
             }
             
-            .logo span, .nav-title, .playlist-section {
+            .logo span, .nav-title {
                 display: none;
             }
             
@@ -584,15 +605,15 @@
                 display: none;
             }
             
-            .player-extra {
-                display: none;
+            .player-controls {
+                width: 70%;
             }
         }
         
         @media (max-width: 576px) {
             .app-container {
                 grid-template-columns: 1fr;
-                grid-template-rows: auto 1fr 90px;
+                grid-template-rows: auto 1fr auto;
             }
             
             .sidebar {
@@ -609,66 +630,24 @@
                 gap: 10px;
             }
             
-            .player {
+            .player-bar {
                 grid-column: 1;
-            }
-            
-            .header {
                 flex-direction: column;
                 gap: 15px;
-                align-items: flex-start;
+                padding: 15px;
             }
             
-            .user-section {
-                align-self: flex-end;
-                margin-top: -50px;
+            .now-playing, .player-controls {
+                width: 100%;
             }
-        }
-        
-        /* Overlay for cart */
-        .overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
-            z-index: 999;
-            display: none;
-        }
-        
-        .overlay.active {
-            display: block;
-        }
-        
-        /* Creator tags */
-        .creator-type {
-            display: inline-block;
-            padding: 3px 8px;
-            border-radius: 10px;
-            font-size: 0.7rem;
-            margin-right: 5px;
-            margin-top: 5px;
-        }
-        
-        .musician {
-            background-color: rgba(93, 125, 190, 0.2);
-            color: var(--accent-blue);
-        }
-        
-        .artist {
-            background-color: rgba(255, 100, 100, 0.2);
-            color: #ff6464;
-        }
-        
-        .poet {
-            background-color: rgba(100, 255, 150, 0.2);
-            color: #64ff96;
-        }
-        
-        .vocalist {
-            background-color: rgba(255, 200, 100, 0.2);
-            color: #ffc864;
+            
+            .now-playing {
+                justify-content: center;
+            }
+            
+            .player-controls {
+                order: 2;
+            }
         }
     </style>
 </head>
@@ -699,46 +678,13 @@
                     <i class="fas fa-music"></i>
                     <span>Music</span>
                 </a>
-                <a href="#" class="nav-item">
-                    <i class="fas fa-paint-brush"></i>
-                    <span>Art</span>
-                </a>
-            </div>
-            
-            <div class="nav-section">
-                <div class="nav-title">Your Content</div>
-                <a href="#" class="nav-item">
-                    <i class="fas fa-heart"></i>
-                    <span>Liked</span>
-                </a>
-                <a href="#" class="nav-item">
-                    <i class="fas fa-shopping-bag"></i>
-                    <span>Purchases</span>
-                </a>
-                <a href="#" class="nav-item">
-                    <i class="fas fa-plus-circle"></i>
-                    <span>Create</span>
-                </a>
-            </div>
-            
-            <div class="playlist-section">
-                <div class="nav-title">Playlists</div>
-                <a href="#" class="playlist-item">Chill Vibes</a>
-                <a href="#" class="playlist-item">Focus Mix</a>
-                <a href="#" class="playlist-item">Art Inspiration</a>
-                <a href="#" class="playlist-item">Poetry Readings</a>
-                <a href="#" class="playlist-item">+ New Playlist</a>
             </div>
         </div>
         
         <!-- Main Content Area -->
         <div class="main-content">
             <div class="header">
-                <div class="nav-buttons">
-                    <button class="nav-btn"><i class="fas fa-chevron-left"></i></button>
-                    <button class="nav-btn"><i class="fas fa-chevron-right"></i></button>
-                </div>
-                
+                <h1 class="section-title">Discover Creators</h1>
                 <div class="user-section">
                     <div class="cart-icon" id="open-cart">
                         <i class="fas fa-shopping-cart"></i>
@@ -748,125 +694,23 @@
                 </div>
             </div>
             
-            <!-- Featured Content -->
+            <!-- Music Content -->
             <div class="content-section">
                 <div class="section-header">
-                    <h2 class="section-title">Featured Content</h2>
-                    <a href="#" class="see-all">See all</a>
+                    <h2 class="section-title">Latest Music</h2>
                 </div>
-                <div class="content-grid">
-                    <!-- Card 1 -->
-                    <div class="content-card" data-id="1">
-                        <div class="card-image">
-                            <img src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80" alt="Music Album">
-                            <button class="card-play-btn"><i class="fas fa-play"></i></button>
-                        </div>
-                        <div class="card-title">Midnight Dreams</div>
-                        <div class="card-artist">Alex Turner</div>
-                        <div class="creator-type musician">Musician</div>
-                        <div class="card-price">$4.99</div>
-                        <button class="add-to-cart">Add to Cart</button>
-                    </div>
-                    
-                    <!-- Card 2 -->
-                    <div class="content-card" data-id="2">
-                        <div class="card-image">
-                            <img src="https://images.unsplash.com/photo-1541961017774-22349e4a1262?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80" alt="Digital Art">
-                            <button class="card-play-btn"><i class="fas fa-eye"></i></button>
-                        </div>
-                        <div class="card-title">Digital Landscape</div>
-                        <div class="card-artist">Maya Chen</div>
-                        <div class="creator-type artist">Artist</div>
-                        <div class="card-price">$9.99</div>
-                        <button class="add-to-cart">Add to Cart</button>
-                    </div>
-                    
-                    <!-- Card 3 -->
-                    <div class="content-card" data-id="3">
-                        <div class="card-image">
-                            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80" alt="Poetry Collection">
-                            <button class="card-play-btn"><i class="fas fa-book-open"></i></button>
-                        </div>
-                        <div class="card-title">Whispers of Dawn</div>
-                        <div class="card-artist">Jordan Lee</div>
-                        <div class="creator-type poet">Poet</div>
-                        <div class="card-price">$3.99</div>
-                        <button class="add-to-cart">Add to Cart</button>
-                    </div>
-                    
-                    <!-- Card 4 -->
-                    <div class="content-card" data-id="4">
-                        <div class="card-image">
-                            <img src="https://images.unsplash.com/photo-1516280440614-37939bbacd81?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80" alt="Vocal Performance">
-                            <button class="card-play-btn"><i class="fas fa-play"></i></button>
-                        </div>
-                        <div class="card-title">Soulful Melodies</div>
-                        <div class="card-artist">Samantha Rivers</div>
-                        <div class="creator-type vocalist">Vocalist</div>
-                        <div class="card-price">$2.99</div>
-                        <button class="add-to-cart">Add to Cart</button>
-                    </div>
+                <div class="content-grid" id="music-grid">
+                    <!-- Music cards will be populated by JavaScript -->
                 </div>
             </div>
             
-            <!-- Recently Added -->
+            <!-- Poetry & Spoken Word -->
             <div class="content-section">
                 <div class="section-header">
-                    <h2 class="section-title">Recently Added</h2>
-                    <a href="#" class="see-all">See all</a>
+                    <h2 class="section-title">Poetry & Spoken Word</h2>
                 </div>
-                <div class="content-grid">
-                    <!-- Card 5 -->
-                    <div class="content-card" data-id="5">
-                        <div class="card-image">
-                            <img src="https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80" alt="Live Performance">
-                            <button class="card-play-btn"><i class="fas fa-play"></i></button>
-                        </div>
-                        <div class="card-title">Live at Symphony</div>
-                        <div class="card-artist">The Harmonics</div>
-                        <div class="creator-type musician">Musician</div>
-                        <div class="card-price">$7.99</div>
-                        <button class="add-to-cart">Add to Cart</button>
-                    </div>
-                    
-                    <!-- Card 6 -->
-                    <div class="content-card" data-id="6">
-                        <div class="card-image">
-                            <img src="https://images.unsplash.com/photo-1542744095-fcf48d80b0fd?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80" alt="Abstract Art">
-                            <button class="card-play-btn"><i class="fas fa-eye"></i></button>
-                        </div>
-                        <div class="card-title">Abstract Thoughts</div>
-                        <div class="card-artist">Carlos Mendez</div>
-                        <div class="creator-type artist">Artist</div>
-                        <div class="card-price">$12.99</div>
-                        <button class="add-to-cart">Add to Cart</button>
-                    </div>
-                    
-                    <!-- Card 7 -->
-                    <div class="content-card" data-id="7">
-                        <div class="card-image">
-                            <img src="https://images.unsplash.com/photo-1519681393784-d120267933ba?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80" alt="Poetry Book">
-                            <button class="card-play-btn"><i class="fas fa-book-open"></i></button>
-                        </div>
-                        <div class="card-title">Urban Echoes</div>
-                        <div class="card-artist">Taylor Reed</div>
-                        <div class="creator-type poet">Poet</div>
-                        <div class="card-price">$5.99</div>
-                        <button class="add-to-cart">Add to Cart</button>
-                    </div>
-                    
-                    <!-- Card 8 -->
-                    <div class="content-card" data-id="8">
-                        <div class="card-image">
-                            <img src="https://images.unsplash.com/photo-1511379938547-c1f69419868d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80" alt="Voice Over">
-                            <button class="card-play-btn"><i class="fas fa-play"></i></button>
-                        </div>
-                        <div class="card-title">Voiceover Pack</div>
-                        <div class="card-artist">David Park</div>
-                        <div class="creator-type vocalist">Vocalist</div>
-                        <div class="card-price">$14.99</div>
-                        <button class="add-to-cart">Add to Cart</button>
-                    </div>
+                <div class="content-grid" id="poetry-grid">
+                    <!-- Poetry cards will be populated by JavaScript -->
                 </div>
             </div>
         </div>
@@ -881,86 +725,41 @@
             </div>
             <div class="cart-items" id="cart-items">
                 <!-- Cart items will be added here dynamically -->
-                <div class="cart-item">
-                    <div class="cart-item-image">
-                        <img src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=200&q=80" alt="Music Album">
-                    </div>
-                    <div class="cart-item-details">
-                        <div class="cart-item-title">Midnight Dreams</div>
-                        <div class="cart-item-artist">Alex Turner</div>
-                        <div class="cart-item-price">$4.99</div>
-                    </div>
-                    <button class="remove-item" data-id="1">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                
-                <div class="cart-item">
-                    <div class="cart-item-image">
-                        <img src="https://images.unsplash.com/photo-1541961017774-22349e4a1262?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=200&q=80" alt="Digital Art">
-                    </div>
-                    <div class="cart-item-details">
-                        <div class="cart-item-title">Digital Landscape</div>
-                        <div class="cart-item-artist">Maya Chen</div>
-                        <div class="cart-item-price">$9.99</div>
-                    </div>
-                    <button class="remove-item" data-id="2">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                
-                <div class="cart-item">
-                    <div class="cart-item-image">
-                        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=200&q=80" alt="Poetry Collection">
-                    </div>
-                    <div class="cart-item-details">
-                        <div class="cart-item-title">Whispers of Dawn</div>
-                        <div class="cart-item-artist">Jordan Lee</div>
-                        <div class="cart-item-price">$3.99</div>
-                    </div>
-                    <button class="remove-item" data-id="3">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
             </div>
             <div class="cart-footer">
                 <div class="cart-total">
                     <span>Total:</span>
-                    <span id="cart-total">$18.97</span>
+                    <span id="cart-total">$0.00</span>
                 </div>
                 <button class="checkout-btn">Proceed to Checkout</button>
             </div>
         </div>
         
-        <!-- Player -->
-        <div class="player">
+        <!-- Audio Player Bar -->
+        <div class="player-bar" id="player-bar">
             <div class="now-playing">
                 <div class="now-playing-image">
-                    <img src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=200&q=80" alt="Now Playing">
+                    <img id="current-track-image" src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=200&q=80" alt="Now Playing">
                 </div>
                 <div class="now-playing-details">
-                    <div class="title">Midnight Dreams</div>
-                    <div class="artist">Alex Turner</div>
+                    <div class="title" id="current-track-title">Select a track to play</div>
+                    <div class="artist" id="current-track-artist">-</div>
                 </div>
             </div>
             
             <div class="player-controls">
                 <div class="control-buttons">
-                    <button class="control-btn"><i class="fas fa-random"></i></button>
-                    <button class="control-btn"><i class="fas fa-step-backward"></i></button>
-                    <button class="control-btn play-btn"><i class="fas fa-play"></i></button>
-                    <button class="control-btn"><i class="fas fa-step-forward"></i></button>
-                    <button class="control-btn"><i class="fas fa-redo"></i></button>
+                    <button class="control-btn" id="prev-btn"><i class="fas fa-step-backward"></i></button>
+                    <button class="play-btn" id="play-btn"><i class="fas fa-play"></i></button>
+                    <button class="control-btn" id="next-btn"><i class="fas fa-step-forward"></i></button>
                 </div>
-                <div class="progress-bar">
-                    <div class="progress"></div>
+                <div class="progress-container">
+                    <span class="progress-time" id="current-time">0:00</span>
+                    <div class="progress-bar" id="progress-bar">
+                        <div class="progress" id="progress"></div>
+                    </div>
+                    <span class="progress-time" id="duration">0:00</span>
                 </div>
-            </div>
-            
-            <div class="player-extra">
-                <button class="control-btn"><i class="fas fa-list-ul"></i></button>
-                <button class="control-btn"><i class="fas fa-volume-up"></i></button>
-                <input type="range" class="volume-slider" min="0" max="100" value="70">
             </div>
         </div>
         
@@ -969,36 +768,326 @@
     </div>
 
     <script>
+        // SoundCloud Integration
+        // Replace these with your actual SoundCloud track URLs
+        const soundCloudTracks = [
+            {
+                id: 1,
+                title: "Midnight Dreams",
+                artist: "Alex Turner",
+                price: 4.99,
+                type: "musician",
+                image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80",
+                soundcloudUrl: "https://on.soundcloud.com/zonw9uPnQhzBxW7V7b", // Replace with actual SoundCloud URL
+                previewUrl: "https://soundcloud.com/alex-turner-1/midnight-dreams?si=28b4f44e0fe34b558d2263ec5e79e3e5&utm_source=clipboard&utm_medium=text&utm_campaign=social_sharing" // Example URL
+            },
+            {
+                id: 2,
+                title: "Urban Echoes",
+                artist: "Jordan Lee",
+                price: 3.99,
+                type: "poet",
+                image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80",
+                soundcloudUrl: "https://soundcloud.com/jordan-lee/urban-echoes", // Replace with actual SoundCloud URL
+                previewUrl: "https://soundcloud.com/jordan-lee/urban-echoes?si=6b8e5f4f222e4f5b98f17fcd2a602415&utm_source=clipboard&utm_medium=text&utm_campaign=social_sharing" // Example URL
+            },
+            {
+                id: 3,
+                title: "Soulful Melodies",
+                artist: "Samantha Rivers",
+                price: 2.99,
+                type: "vocalist",
+                image: "https://images.unsplash.com/photo-1516280440614-37939bbacd81?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80",
+                soundcloudUrl: "https://soundcloud.com/samantha-rivers/soulful-melodies", // Replace with actual SoundCloud URL
+                previewUrl: "https://soundcloud.com/samantha-rivers/soulful-melodies?si=3cc6770559a54b9e861a043a40fbd8a9&utm_source=clipboard&utm_medium=text&utm_campaign=social_sharing" // Example URL
+            },
+            {
+                id: 4,
+                title: "Live at Symphony",
+                artist: "The Harmonics",
+                price: 7.99,
+                type: "musician",
+                image: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80",
+                soundcloudUrl: "https://soundcloud.com/the-harmonics/live-at-symphony", // Replace with actual SoundCloud URL
+                previewUrl: "https://soundcloud.com/the-harmonics/live-at-symphony?si=df4d3c50a5ef47a78920c6c6f6921dc7&utm_source=clipboard&utm_medium=text&utm_campaign=social_sharing" // Example URL
+            },
+            {
+                id: 5,
+                title: "Digital Landscape",
+                artist: "Maya Chen",
+                price: 9.99,
+                type: "artist",
+                image: "https://images.unsplash.com/photo-1541961017774-22349e4a1262?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80",
+                soundcloudUrl: "", // No audio for visual art
+                previewUrl: ""
+            }
+        ];
+        
         // Cart functionality
-        const cartPanel = document.getElementById('cart-panel');
-        const overlay = document.getElementById('overlay');
-        const openCartBtn = document.getElementById('open-cart');
-        const closeCartBtn = document.getElementById('close-cart');
-        const cartItemsContainer = document.getElementById('cart-items');
-        const cartTotalElement = document.getElementById('cart-total');
-        const cartCountElement = document.querySelector('.cart-count');
+        let cart = [];
+        let currentTrackIndex = 0;
+        let isPlaying = false;
+        let soundCloudWidget = null;
         
-        // Sample data for content items
-        const contentItems = [
-            { id: 1, title: "Midnight Dreams", artist: "Alex Turner", price: 4.99, type: "musician", image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=200&q=80" },
-            { id: 2, title: "Digital Landscape", artist: "Maya Chen", price: 9.99, type: "artist", image: "https://images.unsplash.com/photo-1541961017774-22349e4a1262?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=200&q=80" },
-            { id: 3, title: "Whispers of Dawn", artist: "Jordan Lee", price: 3.99, type: "poet", image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=200&q=80" },
-            { id: 4, title: "Soulful Melodies", artist: "Samantha Rivers", price: 2.99, type: "vocalist", image: "https://images.unsplash.com/photo-1516280440614-37939bbacd81?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=200&q=80" },
-            { id: 5, title: "Live at Symphony", artist: "The Harmonics", price: 7.99, type: "musician", image: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=200&q=80" },
-            { id: 6, title: "Abstract Thoughts", artist: "Carlos Mendez", price: 12.99, type: "artist", image: "https://images.unsplash.com/photo-1542744095-fcf48d80b0fd?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=200&q=80" },
-            { id: 7, title: "Urban Echoes", artist: "Taylor Reed", price: 5.99, type: "poet", image: "https://images.unsplash.com/photo-1519681393784-d120267933ba?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=200&q=80" },
-            { id: 8, title: "Voiceover Pack", artist: "David Park", price: 14.99, type: "vocalist", image: "https://images.unsplash.com/photo-1511379938547-c1f69419868d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=200&q=80" }
-        ];
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            renderContentCards();
+            updateCartDisplay();
+            setupEventListeners();
+            initializeSoundCloudPlayer();
+        });
         
-        // Initialize cart
-        let cart = [
-            { id: 1, title: "Midnight Dreams", artist: "Alex Turner", price: 4.99, image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=200&q=80" },
-            { id: 2, title: "Digital Landscape", artist: "Maya Chen", price: 9.99, image: "https://images.unsplash.com/photo-1541961017774-22349e4a1262?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=200&q=80" },
-            { id: 3, title: "Whispers of Dawn", artist: "Jordan Lee", price: 3.99, image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=200&q=80" }
-        ];
+        // Render content cards
+        function renderContentCards() {
+            const musicGrid = document.getElementById('music-grid');
+            const poetryGrid = document.getElementById('poetry-grid');
+            
+            soundCloudTracks.forEach(track => {
+                const card = createContentCard(track);
+                
+                if (track.type === 'musician' || track.type === 'vocalist') {
+                    musicGrid.appendChild(card);
+                } else if (track.type === 'poet') {
+                    poetryGrid.appendChild(card);
+                }
+            });
+        }
         
-        // Update cart display
+        // Create a content card
+        function createContentCard(track) {
+            const card = document.createElement('div');
+            card.className = 'content-card';
+            card.setAttribute('data-id', track.id);
+            
+            const typeClass = track.type === 'musician' ? 'musician' : 
+                             track.type === 'artist' ? 'artist' :
+                             track.type === 'poet' ? 'poet' : 'vocalist';
+            
+            card.innerHTML = `
+                <div class="card-image">
+                    <img src="${track.image}" alt="${track.title}">
+                    ${track.soundcloudUrl ? `<button class="card-play-btn" data-id="${track.id}"><i class="fas fa-play"></i></button>` : ''}
+                </div>
+                <div class="card-title">${track.title}</div>
+                <div class="card-artist">${track.artist}</div>
+                <div class="creator-type ${typeClass}">${track.type.charAt(0).toUpperCase() + track.type.slice(1)}</div>
+                <div class="card-price">$${track.price.toFixed(2)}</div>
+                ${track.soundcloudUrl ? `<button class="add-to-cart">Add to Cart</button>` : '<button class="add-to-cart" style="opacity: 0.7" disabled>Digital Art Only</button>'}
+            `;
+            
+            return card;
+        }
+        
+        // Initialize SoundCloud Player
+        function initializeSoundCloudPlayer() {
+            // Load SoundCloud Widget API
+            const iframeElement = document.createElement('iframe');
+            iframeElement.id = 'soundcloud-widget';
+            iframeElement.style.display = 'none';
+            iframeElement.allow = 'autoplay';
+            document.body.appendChild(iframeElement);
+            
+            // Initialize widget when API is ready
+            window.addEventListener('load', function() {
+                if (window.SC) {
+                    soundCloudWidget = window.SC.Widget(iframeElement);
+                    
+                    // Set up widget event listeners
+                    soundCloudWidget.bind(window.SC.Widget.Events.READY, function() {
+                        console.log('SoundCloud player ready');
+                    });
+                    
+                    soundCloudWidget.bind(window.SC.Widget.Events.PLAY_PROGRESS, function(data) {
+                        updateProgressBar(data.currentPosition, data.duration);
+                    });
+                    
+                    soundCloudWidget.bind(window.SC.Widget.Events.FINISH, function() {
+                        playNextTrack();
+                    });
+                }
+            });
+        }
+        
+        // Play a SoundCloud track
+        function playSoundCloudTrack(trackId) {
+            const track = soundCloudTracks.find(t => t.id === trackId);
+            if (!track || !track.soundcloudUrl) return;
+            
+            // Update current track index
+            currentTrackIndex = soundCloudTracks.findIndex(t => t.id === trackId);
+            
+            // Update player UI
+            document.getElementById('current-track-title').textContent = track.title;
+            document.getElementById('current-track-artist').textContent = track.artist;
+            document.getElementById('current-track-image').src = track.image;
+            
+            // Load and play track in SoundCloud widget
+            if (soundCloudWidget && track.soundcloudUrl) {
+                soundCloudWidget.load(track.soundcloudUrl, {
+                    auto_play: true,
+                    buying: false,
+                    liking: false,
+                    download: false,
+                    sharing: false,
+                    show_artwork: true,
+                    show_comments: false,
+                    show_playcount: false,
+                    show_user: false,
+                    visual: false
+                });
+                
+                isPlaying = true;
+                updatePlayButton();
+                showNotification(`Now playing: ${track.title}`);
+            }
+        }
+        
+        // Update progress bar
+        function updateProgressBar(currentTime, duration) {
+            const progress = document.getElementById('progress');
+            const currentTimeElement = document.getElementById('current-time');
+            const durationElement = document.getElementById('duration');
+            
+            // Calculate percentages
+            const progressPercent = (currentTime / duration) * 100;
+            progress.style.width = `${progressPercent}%`;
+            
+            // Format time
+            currentTimeElement.textContent = formatTime(currentTime);
+            durationElement.textContent = formatTime(duration);
+        }
+        
+        // Format time (milliseconds to MM:SS)
+        function formatTime(ms) {
+            const totalSeconds = Math.floor(ms / 1000);
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        }
+        
+        // Update play button
+        function updatePlayButton() {
+            const playBtnIcon = document.getElementById('play-btn').querySelector('i');
+            if (isPlaying) {
+                playBtnIcon.classList.remove('fa-play');
+                playBtnIcon.classList.add('fa-pause');
+            } else {
+                playBtnIcon.classList.remove('fa-pause');
+                playBtnIcon.classList.add('fa-play');
+            }
+        }
+        
+        // Play/pause current track
+        function togglePlayPause() {
+            if (!soundCloudWidget) return;
+            
+            soundCloudWidget.toggle();
+            isPlaying = !isPlaying;
+            updatePlayButton();
+            
+            if (isPlaying) {
+                showNotification('Playback resumed');
+            } else {
+                showNotification('Playback paused');
+            }
+        }
+        
+        // Play next track
+        function playNextTrack() {
+            const musicTracks = soundCloudTracks.filter(t => t.soundcloudUrl);
+            if (musicTracks.length === 0) return;
+            
+            currentTrackIndex = (currentTrackIndex + 1) % musicTracks.length;
+            const nextTrack = musicTracks[currentTrackIndex];
+            playSoundCloudTrack(nextTrack.id);
+        }
+        
+        // Play previous track
+        function playPrevTrack() {
+            const musicTracks = soundCloudTracks.filter(t => t.soundcloudUrl);
+            if (musicTracks.length === 0) return;
+            
+            currentTrackIndex = (currentTrackIndex - 1 + musicTracks.length) % musicTracks.length;
+            const prevTrack = musicTracks[currentTrackIndex];
+            playSoundCloudTrack(prevTrack.id);
+        }
+        
+        // Setup event listeners
+        function setupEventListeners() {
+            // Cart functionality
+            document.getElementById('open-cart').addEventListener('click', openCart);
+            document.getElementById('close-cart').addEventListener('click', closeCart);
+            document.getElementById('overlay').addEventListener('click', closeCart);
+            
+            // Player controls
+            document.getElementById('play-btn').addEventListener('click', togglePlayPause);
+            document.getElementById('prev-btn').addEventListener('click', playPrevTrack);
+            document.getElementById('next-btn').addEventListener('click', playNextTrack);
+            
+            // Progress bar click
+            document.getElementById('progress-bar').addEventListener('click', function(e) {
+                if (!soundCloudWidget) return;
+                
+                const rect = this.getBoundingClientRect();
+                const clickPosition = (e.clientX - rect.left) / rect.width;
+                
+                soundCloudWidget.getDuration(function(duration) {
+                    const seekTo = duration * clickPosition;
+                    soundCloudWidget.seekTo(seekTo);
+                });
+            });
+            
+            // Event delegation for dynamic content
+            document.addEventListener('click', function(e) {
+                // Play button on cards
+                if (e.target.closest('.card-play-btn')) {
+                    const card = e.target.closest('.content-card');
+                    const trackId = parseInt(card.getAttribute('data-id'));
+                    playSoundCloudTrack(trackId);
+                }
+                
+                // Add to cart button
+                if (e.target.closest('.add-to-cart')) {
+                    const card = e.target.closest('.content-card');
+                    const trackId = parseInt(card.getAttribute('data-id'));
+                    addToCart(trackId);
+                }
+                
+                // Remove item from cart
+                if (e.target.closest('.remove-item')) {
+                    const itemId = parseInt(e.target.closest('.remove-item').getAttribute('data-id'));
+                    removeFromCart(itemId);
+                }
+            });
+        }
+        
+        // Cart functions
+        function addToCart(trackId) {
+            const track = soundCloudTracks.find(t => t.id === trackId);
+            if (!track || cart.some(item => item.id === trackId)) return;
+            
+            cart.push({
+                id: track.id,
+                title: track.title,
+                artist: track.artist,
+                price: track.price,
+                image: track.image
+            });
+            
+            updateCartDisplay();
+            showNotification(`Added "${track.title}" to cart`);
+        }
+        
+        function removeFromCart(trackId) {
+            cart = cart.filter(item => item.id !== trackId);
+            updateCartDisplay();
+        }
+        
         function updateCartDisplay() {
+            const cartItemsContainer = document.getElementById('cart-items');
+            const cartTotalElement = document.getElementById('cart-total');
+            const cartCountElement = document.querySelector('.cart-count');
+            
             // Clear cart items
             cartItemsContainer.innerHTML = '';
             
@@ -1035,121 +1124,20 @@
             cartCountElement.textContent = cart.length;
         }
         
-        // Open cart
-        openCartBtn.addEventListener('click', () => {
-            cartPanel.classList.add('active');
-            overlay.classList.add('active');
+        function openCart() {
+            document.getElementById('cart-panel').classList.add('active');
+            document.getElementById('overlay').classList.add('active');
             document.body.style.overflow = 'hidden';
-        });
+        }
         
-        // Close cart
-        closeCartBtn.addEventListener('click', () => {
-            cartPanel.classList.remove('active');
-            overlay.classList.remove('active');
+        function closeCart() {
+            document.getElementById('cart-panel').classList.remove('active');
+            document.getElementById('overlay').classList.remove('active');
             document.body.style.overflow = 'auto';
-        });
+        }
         
-        // Close cart when clicking overlay
-        overlay.addEventListener('click', () => {
-            cartPanel.classList.remove('active');
-            overlay.classList.remove('active');
-            document.body.style.overflow = 'auto';
-        });
-        
-        // Remove item from cart
-        document.addEventListener('click', (e) => {
-            if (e.target.closest('.remove-item')) {
-                const itemId = parseInt(e.target.closest('.remove-item').getAttribute('data-id'));
-                cart = cart.filter(item => item.id !== itemId);
-                updateCartDisplay();
-            }
-        });
-        
-        // Add to cart functionality
-        document.addEventListener('click', (e) => {
-            if (e.target.closest('.add-to-cart')) {
-                const card = e.target.closest('.content-card');
-                const itemId = parseInt(card.getAttribute('data-id'));
-                
-                // Find item in contentItems
-                const itemToAdd = contentItems.find(item => item.id === itemId);
-                
-                // Check if item already in cart
-                const alreadyInCart = cart.some(item => item.id === itemId);
-                
-                if (!alreadyInCart && itemToAdd) {
-                    cart.push({
-                        id: itemToAdd.id,
-                        title: itemToAdd.title,
-                        artist: itemToAdd.artist,
-                        price: itemToAdd.price,
-                        image: itemToAdd.image
-                    });
-                    
-                    // Update cart display
-                    updateCartDisplay();
-                    
-                    // Visual feedback
-                    const button = e.target.closest('.add-to-cart');
-                    const originalText = button.textContent;
-                    button.textContent = 'Added!';
-                    button.style.backgroundColor = '#4CAF50';
-                    button.style.borderColor = '#4CAF50';
-                    
-                    setTimeout(() => {
-                        button.textContent = originalText;
-                        button.style.backgroundColor = '';
-                        button.style.borderColor = '';
-                    }, 1500);
-                }
-            }
-        });
-        
-        // Play button functionality
-        document.addEventListener('click', (e) => {
-            if (e.target.closest('.card-play-btn')) {
-                const card = e.target.closest('.content-card');
-                const itemId = parseInt(card.getAttribute('data-id'));
-                const item = contentItems.find(item => item.id === itemId);
-                
-                if (item) {
-                    // Update player with selected item
-                    const playerTitle = document.querySelector('.now-playing-details .title');
-                    const playerArtist = document.querySelector('.now-playing-details .artist');
-                    const playerImage = document.querySelector('.now-playing-image img');
-                    
-                    playerTitle.textContent = item.title;
-                    playerArtist.textContent = item.artist;
-                    playerImage.src = item.image;
-                    
-                    // Change play button to pause
-                    const playBtn = document.querySelector('.play-btn i');
-                    playBtn.classList.remove('fa-play');
-                    playBtn.classList.add('fa-pause');
-                    
-                    // Show notification
-                    showNotification(`Now playing: ${item.title} by ${item.artist}`);
-                }
-            }
-        });
-        
-        // Play/pause button in player
-        document.querySelector('.play-btn').addEventListener('click', function() {
-            const icon = this.querySelector('i');
-            if (icon.classList.contains('fa-play')) {
-                icon.classList.remove('fa-play');
-                icon.classList.add('fa-pause');
-                showNotification('Playback started');
-            } else {
-                icon.classList.remove('fa-pause');
-                icon.classList.add('fa-play');
-                showNotification('Playback paused');
-            }
-        });
-        
-        // Show notification function
+        // Show notification
         function showNotification(message) {
-            // Create notification element
             const notification = document.createElement('div');
             notification.className = 'notification';
             notification.textContent = message;
@@ -1168,47 +1156,38 @@
                 animation: fadeInOut 3s ease-in-out;
             `;
             
-            // Add styles for animation
-            const style = document.createElement('style');
-            style.textContent = `
-                @keyframes fadeInOut {
-                    0% { opacity: 0; bottom: 80px; }
-                    15% { opacity: 1; bottom: 100px; }
-                    85% { opacity: 1; bottom: 100px; }
-                    100% { opacity: 0; bottom: 120px; }
-                }
-            `;
-            document.head.appendChild(style);
-            
             document.body.appendChild(notification);
             
-            // Remove notification after animation
             setTimeout(() => {
                 notification.remove();
-                style.remove();
             }, 3000);
         }
         
-        // Initialize cart display
-        updateCartDisplay();
+        // Add CSS for notification animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeInOut {
+                0% { opacity: 0; bottom: 80px; }
+                15% { opacity: 1; bottom: 100px; }
+                85% { opacity: 1; bottom: 100px; }
+                100% { opacity: 0; bottom: 120px; }
+            }
+        `;
+        document.head.appendChild(style);
         
-        // Mobile menu toggle (for smaller screens)
-        function toggleMobileMenu() {
-            const sidebar = document.querySelector('.sidebar');
-            sidebar.style.display = sidebar.style.display === 'block' ? 'none' : 'block';
-        }
-        
-        // Add hamburger menu for mobile
-        if (window.innerWidth <= 576) {
-            const header = document.querySelector('.header');
-            const hamburger = document.createElement('button');
-            hamburger.innerHTML = '<i class="fas fa-bars"></i>';
-            hamburger.className = 'nav-btn';
-            hamburger.style.marginRight = '10px';
-            hamburger.addEventListener('click', toggleMobileMenu);
+        // Checkout functionality
+        document.querySelector('.checkout-btn').addEventListener('click', function() {
+            if (cart.length === 0) {
+                showNotification('Your cart is empty!');
+                return;
+            }
             
-            header.insertBefore(hamburger, header.firstChild);
-        }
+            const total = cart.reduce((sum, item) => sum + item.price, 0);
+            showNotification(`Proceeding to checkout. Total: $${total.toFixed(2)}`);
+            
+            // In a real app, you would redirect to a payment page
+            // window.location.href = '/checkout';
+        });
     </script>
 </body>
 </html>
